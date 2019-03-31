@@ -1,0 +1,37 @@
+Sub TestSheetCreate()
+    Dim mySheetName As String, mySheetNameTest As String
+    mySheetName = "Sheet5"
+    
+    On Error Resume Next
+    mySheetNameTest = Worksheets(mySheetName).Name
+    If Err.Number = 0 Then
+        MsgBox "The sheet named ''" & mySheetName & "'' DOES exist in this workbook."
+    Else
+        Err.Clear
+        Worksheets.Add.Name = mySheetName
+        MsgBox "The sheet named ''" & mySheetName & "'' did not exist in this workbook but it has been created now."
+    End If
+End Sub
+
+
+Sub checkData()
+    Set Source = ActiveWorkbook.Worksheets("employeenumeric")
+    Set Source2 = ActiveWorkbook.Worksheets("Sheet1")
+    Set Target1 = ActiveWorkbook.Worksheets("Sheet4")
+    Set Target2 = ActiveWorkbook.Worksheets("Sheet5")
+    j = 1
+    k = 1
+       
+        
+        For Each c In Source.Range("F2:F25")
+            rowNum2 = Application.Match(c, Source2.Range("B2:B27"), 0)
+            If IsNumeric(rowNum2) Then
+                 Source2.Rows(rowNum2 + 1).Copy Target1.Rows(j)
+                 j = j + 1
+            Else
+                Source.Rows(c.Row).Copy Target2.Rows(k)
+                k = k + 1
+            End If
+        Next c
+
+End Sub
