@@ -1,0 +1,196 @@
+04.02 2:59 AM
+
+
+for /F "tokens=1,2" %i in ('tasklist') do (
+ if "%i" equ "notepad.exe" (set x=%j)
+)
+echo %x%
+
+
+
+@ECHO OFF                                                                              
+FOR /F %%T IN ('Wmic process where^(Name^="explorer.exe"^)get ProcessId^|more +1') DO (
+SET /A ProcessId=%%T) &GOTO SkipLine                                                   
+:SkipLine                                                                              
+echo ProcessId = %ProcessId% 
+
+
+
+
+
+Another way :: You can create a batch file and put following code to batch file. Its first run netstat command to get processId for port 9797. And then set it into a variable.
+
+@ECHO OFF                                                                              
+FOR /F "tokens=5" %%T IN ('netstat -a -n -o ^| findstr "9797" ') DO (
+SET /A ProcessId=%%T) &GOTO SkipLine                                                   
+:SkipLine                                                                              
+echo ProcessId = %ProcessId%
+PAUSE
+
+
+
+Dim SummaryWB As Workbook
+Dim vrtSelectedItem As Variant
+
+With Application.FileDialog(msoFileDialogOpen)
+    .InitialFileName = "https://sharepoint.com/team/folder" & "\"
+    .AllowMultiSelect = False
+    .Show
+    For Each vrtSelectedItem In .SelectedItems
+        Set SummaryWB = Workbooks.Open(vrtSelectedItem)
+    Next
+End With
+
+If SummaryWB Is Nothing then Exit Sub
+
+
+
+
+
+
+
+
+
+'========================================
+'SAVE THIS FILE TO A SHAREPOINT
+'========================================
+
+Sub Push2SharePoint()
+
+    ' define variables
+    Dim SharePointPath As Variant
+    Dim FileAsNamed As Variant
+    ' retrieve SharePoint path indicated by the user inside Excel Sheet named "Select" on cell B33
+    SharePointPath = ThisWorkbook.Sheets("Select").Range("B33").Text
+    ' provide some error message if it's not populated
+    On Error GoTo NoStorageSelected
+    If Not SharePointPath <> False Then
+        'Displaying a message if file not choosedn in the above step
+        MsgBox "No storage space was selected.", vbExclamation, "Sorry!"
+        'And existing from the procedure
+        Exit Sub
+    Else
+        'Create the new file name, note we place data format in ISO 8601 format in front of the file name
+        FileAsNamed = SharePointPath & Year(Date) & "-" & Month(Date) & "-" & Day(Date) & "_" & ThisWorkbook.Name
+
+        ' save the copy
+        ThisWorkbook.SaveAs FileName:=FileAsNamed, FileFormat:=xlOpenXMLWorkbookMacroEnabled, CreateBackup:=False
+
+
+    End If
+
+Exit Sub
+' Error Management
+NoStorageSelected:
+           MsgBox "Error: Excel can not reach SharePoint Folder Storage location" & vbCrLf & _
+           "Possible reasons are: Storage location was not defined in the Worksheet 'Select' cell B33 or " & vbCrLf & _
+           "Not having sufficient previledges to access SharePoint location " & vbCrLf & _
+           "Make sure to add forward slash after SharePoint Document Library"
+           Exit Sub
+
+End Sub
+
+
+
+
+
+
+
+
+
+
+Option Explicit
+Sub btnSharePointFolder()
+    Dim sht As Worksheet
+      
+    Set sht = ThisWorkbook.Sheets("SharePoint Download")
+  
+    If sht.Range("SharePointPath") = "" Then
+        MsgBox "Please enter a sharepoint path first", vbCritical
+        Exit Sub
+    End If
+  
+    If Right(sht.Range("SharePointPath"), 1) <> "/" Then
+        'SharePointPath: http://testdrive.sharepoint.ckannan.blogspot.com/teams/YourTeam/
+        sht.Range("SharePointPath") = sht.Range("SharePointPath") & "/"
+    End If
+  
+    With Application.FileDialog(msoFileDialogFolderPicker)
+        .InitialFileName = sht.Range("SharePointPath")
+        .Title = "Please select a location of input files"
+        .Show
+        If Not .SelectedItems.Count = 0 Then
+            sht.Range("SharepointFolder") = .SelectedItems(1)
+        Else
+            Exit Sub
+        End If
+    End With
+  
+'    'To Remove Drive
+'    Shell "net use Q: /delete"
+      
+    If Dir("Q:\", vbDirectory) = "" Then
+        Shell "net use Q: " & sht.Range("SharePointPath").Value  '/user:MyDomain\MyUserName MyPassword
+    End If
+  
+End Sub
+'_________________________________________________________________________________
+Sub MapNetworkDrive()
+    If Dir("Q:\", vbDirectory) = "" Then
+    'SharePointPath: http://testdrive.sharepoint.ckannan.blogspot.com/teams/YourTeam/
+        Shell "net use Q: " & ThisWorkbook.Sheets("SharePoint Download").Range("SharePointPath").Value  '/user:MyDomain\MyUserName MyPassword
+        MsgBox "The sharepoint path is mapped as network drive.", vbInformation
+    Else
+        MsgBox "The mapped network drive already exists.", vbInformation
+    End If
+End Sub
+'_________________________________________________________________________________
+Sub DownloadFiles()
+    Dim Directory As String
+    Dim file As String
+    Dim i As Long
+    Dim fso As FileSystemObject
+  
+    Application.ScreenUpdating = False
+  
+    If Dir("Q:\", vbDirectory) = "" Then
+        MsgBox "There is no mapped network drive", vbCritical
+        Exit Sub
+    End If
+  
+    'DownloadFolder: http://testdrive.sharepoint.ckannan.blogspot.com/teams/YourTeam/Shared Documents/PDW Status
+    Directory = "Q:\" & ThisWorkbook.Sheets("SharePoint Download").Range("DownloadFolder").Value & "\"
+    Set fso = CreateObject("Scripting.FileSystemObject")
+      
+'  Get first file
+    file = Dir(Directory, vbReadOnly + vbHidden + vbSystem)
+  
+    If file = "" Then
+        MsgBox "No files found in the sharepoint folder.", vbCritical
+        Exit Sub
+    End If
+  
+    Do While file <> ""
+        fso.CopyFile Directory & file, "C:\", True
+        file = Dir()
+    Loop
+  
+    Application.StatusBar = False
+  
+    MsgBox "Downloaded all files to the local folder.", vbInformation
+End Sub
+'_________________________________________________________________________________
+Sub btnLocalFolder_Click()
+    With Application.FileDialog(msoFileDialogFolderPicker)
+        .InitialFileName = "C:\"
+        .Title = "Please select a location to download files"
+        .Show
+        If Not .SelectedItems.Count = 0 Then
+            ThisWorkbook.Sheets("SharePoint Download").Range("LocalFolder") = .SelectedItems(1)
+        End If
+    End With
+End Sub
+Like  Reactions:xlsvba87
+
+
+
