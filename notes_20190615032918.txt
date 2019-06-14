@@ -1,0 +1,75 @@
+06.15 3:28 AM
+Option Explicit
+
+Private Sub CommandButton1_Click()
+    On Error GoTo ErrHandler
+    
+    ' SET Outlook APPLICATION OBJECT.
+    Dim objOutlook As Object
+    Set objOutlook = CreateObject("Outlook.Application")
+    
+    ' CREATE EMAIL OBJECT.
+    Dim objEmail As Object
+    Set objEmail = objOutlook.CreateItem(olMailItem)
+
+    With objEmail
+        .to = "webadmin@encodedna.com"
+        .Subject = "This is a test message from Arun Banik"
+        .Body = "Hi there"
+        .Display   		' DISPLAY MESSAGE.
+    End With
+    
+    ' CLEAR.
+    Set objEmail = Nothing:    Set objOutlook = Nothing
+        
+ErrHandler:
+    '
+End Sub
+
+
+
+
+
+
+
+------------------------
+With objEmail
+    .To = "webadmin@encodedna.com"
+    .CC = "arun@mail.com"
+    .BCC = "arun@hotmail.com"
+    .Subject = "This is a test message from Arun"
+    .Body = "Hi there"
+    .Attachments.Add ("e:\report.doc")
+    .Send
+End With
+
+
+
+-----------------------------
+
+
+Sub LogInformation(LogMessage As String)
+
+Const LogFileName As String = "D:\FOLDERNAME\TEXTFILE.LOG"
+
+Dim FileNum As Integer
+
+FileNum = FreeFile ' next file number
+
+Open LogFileName For Append As #FileNum ' creates the file if it doesn't exist
+
+Print #FileNum, LogMessage ' write information at the end of the text file
+
+Close #FileNum ' close the file
+
+End Sub
+
+-------------------
+
+
+C:\Dropbox\Ships\A1 190812.xlsm
+Code will be:
+ActiveWorkbook.SaveAs Filename:="C:\Dropbox\Ships\A1" & Format(Date, "ddmmyy") & ".xlsm", FileFormat:=51
+
+
+
